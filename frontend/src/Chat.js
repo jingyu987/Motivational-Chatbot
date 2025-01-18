@@ -8,15 +8,29 @@ function Chat() {
   // Ref for the chat box
   const chatBoxRef = useRef(null);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (input.trim() === '') return;
 
     // Add user's message
     setMessages((prev) => [...prev, { sender: 'user', text: input }]);
 
-    // Mock bot response
-    const botResponse = "That's a great point! Keep going!";
-    setMessages((prev) => [...prev, { sender: 'bot', text: botResponse }]);
+    try {
+      // Send the user's input to the Flask backend
+      const response = await fetch('http://127.0.0.1:5000/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: input }),
+      });
+  
+      const data = await response.json();
+  
+      // Add bot's response to the chat
+      setMessages((prev) => [...prev, { sender: 'bot', text: data.response }]);
+    } catch (error) {
+      console.error('Error sending message to backend:', error);
+    }
 
     setInput(''); // Clear the input
   };
